@@ -22,40 +22,66 @@
       font-size: 1.5em;
       margin-bottom: 1em;
     }
-    #nextTime {
-      font-size: 2em;
-      color: #007aff;
+    select {
+      font-size: 1em;
+      margin-bottom: 1em;
+    }
+    #busList {
+      font-size: 1.2em;
       margin-top: 1em;
+      line-height: 1.6em;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>次のバス時刻（自宅 → 京都駅）</h1>
-    <div id="nextTime">読み込み中...</div>
+    <h1>次のバス（自宅⇄京都駅）</h1>
+    <select id="directionSelect">
+      <option value="kyoto_to_matsui">京都駅 → 松井山手駅</option>
+      <option value="matsui_to_kyoto">松井山手駅 → 京都駅</option>
+    </select>
+    <div id="busList">読み込み中...</div>
   </div>
 
   <script>
-    // 仮のバス時刻（24時間表記）
-    const busTimes = ["07:00", "08:30", "10:00", "12:00", "15:30", "18:00"];
+    const timetable = {
+      weekday: {
+        kyoto_to_matsui: [  // ← 平日：京都→松井山手（このあと省略）
+    };
 
-    function getNextBusTime() {
+    function getNowMinutes() {
       const now = new Date();
-      const nowMinutes = now.getHours() * 60 + now.getMinutes();
-
-      for (let time of busTimes) {
-        const [hour, minute] = time.split(":").map(Number);
-        const timeMinutes = hour * 60 + minute;
-
-        if (timeMinutes > nowMinutes) {
-          return time;
-        }
-      }
-      // 本日のバスは終了
-      return "本日のバスは終了しました";
+      return now.getHours() * 60 + now.getMinutes();
     }
 
-    document.getElementById("nextTime").textContent = getNextBusTime();
+    function getTodayType() {
+      const day = new Date().getDay();
+      return (day === 0 || day === 6) ? "holiday" : "weekday";
+    }
+
+    function getNextBuses(times, count = 3) {
+      const now = getNowMinutes();
+      return times.filter(t => {
+        const [h, m] = t.depart.split(":").map(Number);
+        return h * 60 + m > now;
+      }).slice(0, count);
+    }
+
+    function updateDisplay() {
+      const direction = document.getElementById("directionSelect").value;
+      const dayType = getTodayType();
+      const data = timetable[dayType][direction];
+      const nextBuses = getNextBuses(data);
+
+      const listHtml = nextBuses.length > 0
+        ? nextBuses.map(t => `${t.depart} 発 → ${t.arrive} 着`).join("<br>")
+        : "本日の運行は終了しました";
+
+      document.getElementById("busList").innerHTML = listHtml;
+    }
+
+    document.getElementById("directionSelect").addEventListener("change", updateDisplay);
+    updateDisplay();
   </script>
 </body>
 </html>
