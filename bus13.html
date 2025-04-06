@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>次のバス時刻</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 2em;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 2em;
+      border-radius: 1em;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      display: inline-block;
+      width: 90%;
+      max-width: 600px;
+    }
+    h1 {
+      font-size: 1.5em;
+      margin-bottom: 1em;
+    }
+    .section {
+      margin-top: 2em;
+    }
+    .section h2 {
+      font-size: 1.2em;
+      margin-bottom: 0.5em;
+    }
+    .busList {
+      font-size: 1.2em;
+      line-height: 1.6em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>次のバス（自宅⇄京都駅）</h1>
+    <div class="section">
+      <h2>松井山手駅 → 京都駅（次の5本）</h2>
+      <div id="list_matsui_to_kyoto" class="busList">読み込み中...</div>
+    </div>
+    <div class="section">
+      <h2>京都駅 → 松井山手駅（次の3本）</h2>
+      <div id="list_kyoto_to_matsui" class="busList">読み込み中...</div>
+    </div>
+  </div>
+  <script>
+    const timetable = /* KEEP EXISTING TIMETABLE OBJECT HERE */
+
+    function getNowMinutes() {
+      const now = new Date();
+      return now.getHours() * 60 + now.getMinutes();
+    }
+
+    function getTodayType() {
+      const day = new Date().getDay();
+      return (day === 0 || day === 6) ? "holiday" : "weekday";
+    }
+
+    function getNextBuses(times, count = 3) {
+      const now = getNowMinutes();
+      return times.filter(t => {
+        const [h, m] = t.depart.replace(/[()]/g, '').split(":" ).map(Number);
+        return h * 60 + m > now;
+      }).slice(0, count);
+    }
+
+    function updateAllDisplays() {
+      const dayType = getTodayType();
+
+      const toKyoto = getNextBuses(timetable[dayType]["matsui_to_kyoto"], 5);
+      const toMatsui = getNextBuses(timetable[dayType]["kyoto_to_matsui"], 3);
+
+      document.getElementById("list_matsui_to_kyoto").innerHTML =
+        toKyoto.length > 0 ?
+        toKyoto.map(t => `${t.depart} 発 → ${t.arrive} 着`).join("<br>") :
+        "本日の運行は終了しました";
+
+      document.getElementById("list_kyoto_to_matsui").innerHTML =
+        toMatsui.length > 0 ?
+        toMatsui.map(t => `${t.depart} 発 → ${t.arrive} 着`).join("<br>") :
+        "本日の運行は終了しました";
+    }
+
+    updateAllDisplays();
+  </script>
+</body>
+</html>
