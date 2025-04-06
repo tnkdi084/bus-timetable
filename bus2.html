@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>次のバス時刻</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 2em;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 2em;
+      border-radius: 1em;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      display: inline-block;
+    }
+    h1 {
+      font-size: 1.5em;
+      margin-bottom: 1em;
+    }
+    #nextTime {
+      font-size: 2em;
+      color: #007aff;
+      margin-top: 1em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>次のバス時刻（自宅 → 京都駅）</h1>
+    <div id="nextTime">読み込み中...</div>
+  </div>
+
+  <script>
+    // 仮のバス時刻（24時間表記）
+    const busTimes = ["07:00", "08:30", "10:00", "12:00", "15:30", "18:00"];
+
+    function getNextBusTime() {
+      const now = new Date();
+      const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
+      for (let time of busTimes) {
+        const [hour, minute] = time.split(":").map(Number);
+        const timeMinutes = hour * 60 + minute;
+
+        if (timeMinutes > nowMinutes) {
+          return time;
+        }
+      }
+      // 本日のバスは終了
+      return "本日のバスは終了しました";
+    }
+
+    document.getElementById("nextTime").textContent = getNextBusTime();
+  </script>
+</body>
+</html>
