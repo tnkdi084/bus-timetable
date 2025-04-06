@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>次のバス時刻</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 2em;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 2em;
+      border-radius: 1em;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      display: inline-block;
+      width: 90%;
+      max-width: 600px;
+    }
+    h1 {
+      font-size: 1.5em;
+      margin-bottom: 1em;
+    }
+    .section {
+      margin-top: 2em;
+    }
+    .section h2 {
+      font-size: 1.2em;
+      margin-bottom: 0.5em;
+    }
+    .busList {
+      font-size: 1.2em;
+      line-height: 1.6em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>直Qバス</h1>
+    <div class="section">
+      <h2>松井山手発（次の5本）</h2>
+      <div id="list_matsui_to_kyoto" class="busList">読み込み中...</div>
+    </div>
+    <div class="section">
+      <h2>京都発（次の3本）</h2>
+      <div id="list_kyoto_to_matsui" class="busList">読み込み中...</div>
+    </div>
+  </div>
+  <script>
+    function getNowMinutes() {
+      const now = new Date();
+      return now.getHours() * 60 + now.getMinutes();
+    }
+
+    function getTodayType() {
+      const day = new Date().getDay();
+      return (day === 0 || day === 6) ? "holiday" : "weekday";
+    }
+
+    function getNextBuses(times, count = 3) {
+      const now = getNowMinutes();
+      return times.filter(t => {
+        const [h, m] = t.depart.replace(/[()]/g, '').split(":" ).map(Number);
+        return h * 60 + m > now;
+      }).slice(0, count);
+    }
+
+    function updateAllDisplays() {
+      const dayType = getTodayType();
+
+      const toKyoto = getNextBuses(timetable[dayType]["matsui_to_kyoto"], 5);
+      const toMatsui = getNextBuses(timetable[dayType]["kyoto_to_matsui"], 3);
+
+      document.getElementById("list_matsui_to_kyoto").innerHTML =
+        toKyoto.length > 0 ?
+        toKyoto.map(t => `${t.depart} 発 → ${t.arrive} 着`).join("<br>") :
+        "本日の運行は終了しました";
+
+      document.getElementById("list_kyoto_to_matsui").innerHTML =
+        toMatsui.length > 0 ?
+        toMatsui.map(t => `${t.depart} 発 → ${t.arrive} 着`).join("<br>") :
+        "本日の運行は終了しました";
+    }
+
+    const timetable = {
+  "weekday": {
+    "kyoto_to_matsui": [
+      { "depart": "06:21", "arrive": "06:49" },
+      { "depart": "06:41", "arrive": "07:09" },
+      { "depart": "06:59", "arrive": "07:27" },
+      { "depart": "07:14", "arrive": "07:42" },
+      { "depart": "07:50", "arrive": "08:18" },
+      { "depart": "07:55", "arrive": "08:33" },
+      { "depart": "08:10", "arrive": "08:48" },
+      { "depart": "08:22", "arrive": "09:00" },
+      { "depart": "08:33", "arrive": "09:01" },
+      { "depart": "08:45", "arrive": "09:13" },
+      { "depart": "08:50", "arrive": "(9:12)" },
+      { "depart": "09:10", "arrive": "09:38" },
+      { "depart": "09:20", "arrive": "09:48" },
+      { "depart": "09:35", "arrive": "10:03" },
+      { "depart": "09:50", "arrive": "10:20" },
+      { "depart": "10:05", "arrive": "10:33" },
+      { "depart": "10:25", "arrive": "10:53" },
+      { "depart": "10:45", "arrive": "11:15" },
+      { "depart": "11:00", "arrive": "11:28" },
+      { "depart": "11:25", "arrive": "11:53" },
+      { "depart": "11:50", "arrive": "12:18" },
+      { "depart": "12:20", "arrive": "12:48" },
+      { "depart": "12:50", "arrive": "13:18" },
+      { "depart": "13:20", "arrive": "13:48" },
+      { "depart": "13:50", "arrive": "14:18" },
+      { "depart": "14:20", "arrive": "14:48" },
+      { "depart": "14:50", "arrive": "15:18" },
+      { "depart": "15:20", "arrive": "15:48" },
+      { "depart": "15:45", "arrive": "(16:07)" },
+      { "depart": "16:00", "arrive": "16:28" },
+      { "depart": "16:30", "arrive": "17:00" },
+      { "depart": "17:00", "arrive": "17:33" },
+      { "depart": "17:20", "arrive": "17:53" },
+      { "depart": "17:35", "arrive": "18:08" },
+      { "depart": "17:45", "arrive": "(18:07)" },
+      { "depart": "18:00", "arrive": "18:33" },
+      { "depart": "18:10", "arrive": "18:45" },
+      { "depart": "18:25", "arrive": "19:00" },
+      { "depart": "18:35", "arrive": "19:08" },
+      { "depart": "18:50", "arrive": "19:25" },
+      { "depart": "19:05", "arrive": "19:40" },
+      { "depart": "19:15", "arrive": "19:48" },
+      { "depart": "19:30", "arrive": "20:00" },
+      { "depart": "19:45", "arrive": "(20:07)" },
+      { "depart": "19:55", "arrive": "20:23" },
+      { "depart": "20:05", "arrive": "20:35" },
+      { "depart": "20:25", "arrive": "20:53" },
+      { "depart": "20:35", "arrive": "21:05" },
+      { "depart": "20:55", "arrive": "21:23" },
+      { "depart": "21:15", "arrive": "21:46" },
+      { "depart": "21:30", "arrive": "21:58" },
+      { "depart": "21:45", "arrive": "22:15" },
+      { "depart": "21:55", "arrive": "22:25" },
+      { "depart": "22:15", "arrive": "22:45" },
+      { "depart": "22:45", "arrive": "23:15" }
+    ],
+    "matsui_to_kyoto": [
+      { "depart": "06:27", "arrive": "06:55" },
+      { "depart": "06:45", "arrive": "07:13" },
+      { "depart": "07:10", "arrive": "07:38" },
+      { "depart": "07:30", "arrive": "07:58" },
+      { "depart": "07:45", "arrive": "08:13" },
+      { "depart": "08:10", "arrive": "08:38" },
+      { "depart": "(8:25)", "arrive": "08:48" },
+      { "depart": "08:40", "arrive": "09:08" },
+      { "depart": "08:55", "arrive": "09:23" },
+      { "depart": "09:25", "arrive": "09:53" },
+      { "depart": "09:45", "arrive": "10:13" },
+      { "depart": "(10:10)", "arrive": "10:33" },
+      { "depart": "10:20", "arrive": "10:48" },
+      { "depart": "10:45", "arrive": "11:13" },
+      { "depart": "11:10", "arrive": "11:38" },
+      { "depart": "11:40", "arrive": "12:08" },
+      { "depart": "12:10", "arrive": "12:38" },
+      { "depart": "12:40", "arrive": "13:08" },
+      { "depart": "13:10", "arrive": "13:38" },
+      { "depart": "13:40", "arrive": "14:08" },
+      { "depart": "14:10", "arrive": "14:38" },
+      { "depart": "14:40", "arrive": "15:08" },
+      { "depart": "15:05", "arrive": "15:33" },
+      { "depart": "15:20", "arrive": "15:48" },
+      { "depart": "15:40", "arrive": "16:08" },
+      { "depart": "16:10", "arrive": "16:38" },
+      { "depart": "16:40", "arrive": "17:08" },
+      { "depart": "17:00", "arrive": "17:28" },
+      { "depart": "(17:10)", "arrive": "17:33" },
+      { "depart": "17:20", "arrive": "17:53" },
+      { "depart": "17:45", "arrive": "18:13" },
+      { "depart": "18:05", "arrive": "18:33" },
+      { "depart": "18:25", "arrive": "18:53" },
+      { "depart": "18:45", "arrive": "19:18" },
+      { "depart": "(19:10)", "arrive": "19:33" },
+      { "depart": "19:10", "arrive": "19:38" },
+      { "depart": "19:35", "arrive": "20:08" },
+      { "depart": "20:15", "arrive": "20:43" },
+      { "depart": "20:40", "arrive": "21:08" },
+      { "depart": "21:40", "arrive": "22:06" }
+    ]
+  },
+  "holiday": {
+    "kyoto_to_matsui": [
+      { "depart": "07:00", "arrive": "07:28" },
+      { "depart": "07:55", "arrive": "08:26" },
+      { "depart": "08:10", "arrive": "08:43" },
+      { "depart": "08:25", "arrive": "08:58" },
+      { "depart": "08:45", "arrive": "(9:07)" },
+      { "depart": "09:00", "arrive": "09:28" },
+      { "depart": "09:20", "arrive": "09:48" },
+      { "depart": "09:35", "arrive": "10:03" },
+      { "depart": "09:45", "arrive": "10:15" },
+      { "depart": "10:05", "arrive": "10:33" },
+      { "depart": "10:25", "arrive": "10:53" },
+      { "depart": "10:45", "arrive": "11:15" },
+      { "depart": "11:00", "arrive": "11:28" },
+      { "depart": "11:25", "arrive": "11:53" },
+      { "depart": "11:50", "arrive": "12:18" },
+      { "depart": "12:20", "arrive": "12:48" },
+      { "depart": "12:50", "arrive": "13:18" },
+      { "depart": "13:20", "arrive": "13:48" },
+      { "depart": "13:50", "arrive": "14:18" },
+      { "depart": "14:20", "arrive": "14:48" },
+      { "depart": "14:50", "arrive": "15:18" },
+      { "depart": "15:20", "arrive": "15:48" },
+      { "depart": "15:45", "arrive": "(16:07)" },
+      { "depart": "16:00", "arrive": "16:28" },
+      { "depart": "16:20", "arrive": "16:48" },
+      { "depart": "16:50", "arrive": "17:18" },
+      { "depart": "17:20", "arrive": "17:48" },
+      { "depart": "17:35", "arrive": "18:03" },
+      { "depart": "17:45", "arrive": "(18:07)" },
+      { "depart": "18:00", "arrive": "18:28" },
+      { "depart": "18:25", "arrive": "18:53" },
+      { "depart": "18:45", "arrive": "19:13" },
+      { "depart": "19:05", "arrive": "19:35" },
+      { "depart": "19:30", "arrive": "19:58" },
+      { "depart": "19:45", "arrive": "(20:07)" },
+      { "depart": "19:55", "arrive": "20:23" },
+      { "depart": "20:25", "arrive": "20:55" },
+      { "depart": "20:55", "arrive": "21:23" },
+      { "depart": "21:15", "arrive": "21:45" },
+      { "depart": "21:45", "arrive": "22:16" },
+      { "depart": "22:15", "arrive": "22:45" }
+    ],
+    "matsui_to_kyoto": [
+      { "depart": "06:27", "arrive": "06:55" },
+      { "depart": "06:45", "arrive": "07:13" },
+      { "depart": "07:10", "arrive": "07:38" },
+      { "depart": "07:30", "arrive": "07:58" },
+      { "depart": "07:45", "arrive": "08:13" },
+      { "depart": "08:10", "arrive": "08:38" },
+      { "depart": "(8:25)", "arrive": "08:48" },
+      { "depart": "08:40", "arrive": "09:08" },
+      { "depart": "08:55", "arrive": "09:23" },
+      { "depart": "09:25", "arrive": "09:53" },
+      { "depart": "09:45", "arrive": "10:13" },
+      { "depart": "(10:10)", "arrive": "10:33" },
+      { "depart": "10:20", "arrive": "10:48" },
+      { "depart": "10:45", "arrive": "11:13" },
+      { "depart": "11:10", "arrive": "11:38" },
+      { "depart": "11:40", "arrive": "12:08" },
+      { "depart": "12:10", "arrive": "12:38" },
+      { "depart": "12:40", "arrive": "13:08" },
+      { "depart": "13:10", "arrive": "13:38" },
+      { "depart": "13:40", "arrive": "14:08" },
+      { "depart": "14:10", "arrive": "14:38" },
+      { "depart": "14:40", "arrive": "15:08" },
+      { "depart": "15:05", "arrive": "15:33" },
+      { "depart": "15:20", "arrive": "15:48" },
+      { "depart": "15:40", "arrive": "16:08" },
+      { "depart": "16:10", "arrive": "16:38" },
+      { "depart": "16:40", "arrive": "17:08" },
+      { "depart": "17:00", "arrive": "17:28" },
+      { "depart": "(17:10)", "arrive": "17:33" },
+      { "depart": "17:20", "arrive": "17:53" },
+      { "depart": "17:45", "arrive": "18:13" },
+      { "depart": "18:05", "arrive": "18:33" },
+      { "depart": "18:25", "arrive": "18:53" },
+      { "depart": "18:45", "arrive": "19:18" },
+      { "depart": "(19:10)", "arrive": "19:33" },
+      { "depart": "19:10", "arrive": "19:38" },
+      { "depart": "19:35", "arrive": "20:08" },
+      { "depart": "20:15", "arrive": "20:43" },
+      { "depart": "20:40", "arrive": "21:08" },
+      { "depart": "21:40", "arrive": "22:06" }
+    ]
+  }
+};
+
+updateAllDisplays();
+  </script>
+</body>
+</html>
