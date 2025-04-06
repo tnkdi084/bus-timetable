@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -22,40 +23,32 @@
       font-size: 1.5em;
       margin-bottom: 1em;
     }
-    #nextTime {
-      font-size: 2em;
-      color: #007aff;
+    select {
+      font-size: 1em;
+      margin-bottom: 1em;
+    }
+    #busList {
+      font-size: 1.2em;
       margin-top: 1em;
+      line-height: 1.6em;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>次のバス時刻（自宅 → 京都駅）</h1>
-    <div id="nextTime">読み込み中...</div>
+    <h1>次のバス（自宅⇄京都駅）</h1>
+    <select id="directionSelect">
+      <option value="kyoto_to_matsui">京都駅 → 松井山手駅</option>
+      <option value="matsui_to_kyoto">松井山手駅 → 京都駅</option>
+    </select>
+    <div id="busList">読み込み中...</div>
   </div>
 
   <script>
-    // 仮のバス時刻（24時間表記）
-    const busTimes = ["07:00", "08:30", "10:00", "12:00", "15:30", "18:00"];
+    const timetable = 
 
-    function getNextBusTime() {
-      const now = new Date();
-      const nowMinutes = now.getHours() * 60 + now.getMinutes();
 
-      for (let time of busTimes) {
-        const [hour, minute] = time.split(":").map(Number);
-        const timeMinutes = hour * 60 + minute;
 
-        if (timeMinutes > nowMinutes) {
-          return time;
-        }
-      }
-      // 本日のバスは終了
-      return "本日のバスは終了しました";
-    }
 
-    document.getElementById("nextTime").textContent = getNextBusTime();
-  </script>
-</body>
-</html>
+
+
