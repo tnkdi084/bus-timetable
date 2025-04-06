@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>次のバス時刻</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 2em;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 2em;
+      border-radius: 1em;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      display: inline-block;
+    }
+    h1 {
+      font-size: 1.5em;
+      margin-bottom: 1em;
+    }
+    select {
+      font-size: 1em;
+      margin-bottom: 1em;
+    }
+    #busList {
+      font-size: 1.2em;
+      margin-top: 1em;
+      line-height: 1.6em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>次のバス（自宅⇄京都駅）</h1>
+    <select id="directionSelect">
+      <option value="kyoto_to_matsui">京都駅 → 松井山手駅</option>
+      <option value="matsui_to_kyoto">松井山手駅 → 京都駅</option>
+    </select>
+    <div id="busList">読み込み中...</div>
+  </div>
+  <script>
+    const timetable = {
+      weekday: {
+        kyoto_to_matsui: [
+          { depart: "06:21", arrive: "06:49" },
+          { depart: "06:41", arrive: "07:09" },
+          { depart: "06:59", arrive: "07:27" },
+          { depart: "07:14", arrive: "07:42" },
+          { depart: "07:50", arrive: "08:18" },
+          { depart: "07:55", arrive: "08:33" },
+          { depart: "08:10", arrive: "08:48" },
+          { depart: "08:22", arrive: "09:00" },
+          { depart: "08:33", arrive: "09:01" },
+          { depart: "08:45", arrive: "09:13" },
+          { depart: "09:10", arrive: "09:38" },
+          { depart: "09:20", arrive: "09:48" },
+          { depart: "09:35", arrive: "10:03" },
+          { depart: "09:50", arrive: "10:20" },
+          { depart: "10:05", arrive: "10:33" },
+          { depart: "10:25", arrive: "10:53" },
+          { depart: "10:45", arrive: "11:15" },
+          { depart: "11:00", arrive: "11:28" },
+          { depart: "11:25", arrive: "11:53" },
+          { depart: "11:50", arrive: "12:18" },
+          { depart: "12:20", arrive: "12:48" },
+          { depart: "12:50", arrive: "13:18" },
+          { depart: "13:20", arrive: "13:48" },
+          { depart: "13:50", arrive: "14:18" },
+          { depart: "14:20", arrive: "14:48" },
+          { depart: "14:50", arrive: "15:18" },
+          { depart: "15:20", arrive: "15:48" },
+          { depart: "15:45", arrive: "16:13" },
+          { depart: "16:00", arrive: "16:28" },
+          { depart: "16:30", arrive: "17:00" },
+          { depart: "17:00", arrive: "17:33" },
+          { depart: "17:20", arrive: "17:53" },
+          { depart: "17:35", arrive: "18:08" },
+          { depart: "17:45", arrive: "18:33" },
+          { depart: "18:00", arrive: "18:45" },
+          { depart: "18:10", arrive: "19:00" },
+          { depart: "18:25", arrive: "19:08" },
+          { depart: "18:35", arrive: "19:25" },
+          { depart: "18:50", arrive: "19:40" },
+          { depart: "19:05", arrive: "19:48" },
+          { depart: "19:15", arrive: "20:00" },
+          { depart: "19:30", arrive: "20:23" },
+          { depart: "19:45", arrive: "20:35" },
+          { depart: "19:55", arrive: "20:53" },
+          { depart: "20:05", arrive: "21:05" },
+          { depart: "20:25", arrive: "21:23" },
+          { depart: "20:35", arrive: "21:46" },
+          { depart: "20:55", arrive: "21:58" },
+          { depart: "21:15", arrive: "22:15" },
+          { depart: "21:30", arrive: "22:25" },
+          { depart: "21:45", arrive: "22:45" },
+          { depart: "21:55", arrive: "23:15" }
+        ]
+      },
+      holiday: {{
+（既存のholidayセクションをここに残す）
+      }};
+
+    function getNowMinutes() {{
+      const now = new Date();
+      return now.getHours() * 60 + now.getMinutes();
+    }}
+
+    function getTodayType() {{
+      const day = new Date().getDay();
+      return (day === 0 || day === 6) ? "holiday" : "weekday";
+    }}
+
+    function getNextBuses(times, count = 3) {{
+      const now = getNowMinutes();
+      return times.filter(t => {{
+        const [h, m] = t.depart.split(":" ).map(Number);
+        return h * 60 + m > now;
+      }}).slice(0, count);
+    }}
+
+    function updateDisplay() {{
+      const direction = document.getElementById("directionSelect").value;
+      const dayType = getTodayType();
+      const data = timetable[dayType][direction];
+      const nextBuses = getNextBuses(data);
+
+      const listHtml = nextBuses.length > 0
+        ? nextBuses.map(t => `${{t.depart}} 発 → ${{t.arrive}} 着`).join("<br>")
+        : "本日の運行は終了しました";
+
+      document.getElementById("busList").innerHTML = listHtml;
+    }}
+
+    document.getElementById("directionSelect").addEventListener("change", updateDisplay);
+    updateDisplay();
+  </script>
+</body>
+</html>
