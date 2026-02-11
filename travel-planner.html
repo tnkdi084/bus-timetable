@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>旅行行程比較ツール</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #e0f2fe 0%, #ddd6fe 100%);
+            min-height: 100vh;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 24px;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+
+        .header-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:active {
+            background: #2563eb;
+            transform: scale(0.98);
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #1f2937;
+        }
+
+        .btn-secondary:active {
+            background: #e5e7eb;
+            transform: scale(0.98);
+        }
+
+        /* 横スクロール可能なパターングリッド */
+        .patterns-wrapper {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 20px;
+        }
+
+        .patterns-grid {
+            display: flex;
+            gap: 16px;
+            min-width: min-content;
+        }
+
+        .pattern-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            min-width: 320px;
+            max-width: 320px;
+            flex-shrink: 0;
+        }
+
+        .pattern-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 12px;
+        }
+
+        .totals {
+            background: #eff6ff;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 16px;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .total-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .total-label {
+            font-size: 13px;
+            color: #1e40af;
+            font-weight: 500;
+        }
+
+        .total-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #1e3a8a;
+        }
+
+        .route-item {
+            margin-bottom: 8px;
+        }
+
+        .route-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .route-number {
+            font-size: 11px;
+            color: #6b7280;
+            width: 16px;
+            flex-shrink: 0;
+        }
+
+        select {
+            width: 140px;
+            padding: 6px 8px;
+            font-size: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        }
+
+        .route-info {
+            display: flex;
+            gap: 8px;
+            font-size: 11px;
+            color: #6b7280;
+            flex-shrink: 0;
+            align-items: center;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            white-space: nowrap;
+        }
+
+        .info-value {
+            font-weight: 600;
+        }
+
+        /* モーダル */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 600px;
+            width: 100%;
+            margin-top: 20px;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #1f2937;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            color: #6b7280;
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .master-item {
+            background: #f9fafb;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .master-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .master-item-label {
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .master-item-type {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .master-item-type.stay {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .master-fields {
+            display: grid;
+            gap: 8px;
+        }
+
+        .field-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .field-label {
+            font-size: 13px;
+            color: #6b7280;
+            min-width: 80px;
+        }
+
+        .field-input {
+            flex: 1;
+            padding: 8px 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .field-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .delete-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        .delete-btn:active {
+            background: #dc2626;
+        }
+
+        .add-route-section {
+            background: #f0fdf4;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+
+        .add-route-title {
+            font-weight: 600;
+            color: #166534;
+            margin-bottom: 12px;
+        }
+
+        .scroll-hint {
+            text-align: center;
+            padding: 8px;
+            color: #6b7280;
+            font-size: 12px;
+            background: rgba(255, 255, 255, 0.7);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧳 旅行行程比較ツール</h1>
+            <div class="header-buttons">
+                <button class="btn btn-primary" onclick="openMasterModal()">📝 ルート・料金を編集</button>
+                <button class="btn btn-secondary" onclick="resetData()">🔄 初期値に戻す</button>
+            </div>
+        </div>
+
+        <div class="scroll-hint">👈 横にスクロールして3つの行程を比較 👉</div>
+        
+        <div class="patterns-wrapper">
+            <div id="patterns" class="patterns-grid"></div>
+        </div>
+    </div>
+
+    <!-- マスタ編集モーダル -->
+    <div id="masterModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">ルート・料金マスタ編集</h2>
+                <button class="close-btn" onclick="closeMasterModal()">×</button>
+            </div>
+            <div id="masterList"></div>
+            <div class="add-route-section">
+                <div class="add-route-title">➕ 新しいルートを追加</div>
+                <div class="master-fields">
+                    <div class="field-group">
+                        <span class="field-label">ルート名</span>
+                        <input type="text" id="newRouteName" class="field-input" placeholder="例: 大阪 - 京都">
+                    </div>
+                    <div class="field-group">
+                        <span class="field-label">料金 (円)</span>
+                        <input type="number" id="newRouteCost" class="field-input" placeholder="0" min="0">
+                    </div>
+                    <div class="field-group">
+                        <span class="field-label">時間 (分)</span>
+                        <input type="number" id="newRouteTime" class="field-input" placeholder="0" min="0">
+                    </div>
+                    <div class="field-group">
+                        <span class="field-label">種類</span>
+                        <select id="newRouteType" class="field-input">
+                            <option value="transport">移動</option>
+                            <option value="stay">宿泊</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" onclick="addNewRoute()" style="width: 100%; margin-top: 8px;">追加</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // LocalStorageからデータを取得または初期データを使用
+        function loadTravelData() {
+            const savedData = localStorage.getItem('travelData');
+            if (savedData) {
+                return JSON.parse(savedData);
+            }
+            
+            return {
+                routes: [
+                    { id: 'home-nagoya', label: '自宅 - 名古屋', cost: 6410, time: 90, type: 'transport' },
+                    { id: 'home-nagoya-commute', label: '自宅 - 名古屋｜通勤', cost: 3530, time: 90, type: 'transport' },
+                    { id: 'nagoya-home', label: '名古屋 - 自宅', cost: 6410, time: 90, type: 'transport' },
+                    { id: 'nagoya-home-commute', label: '名古屋 - 自宅｜通勤', cost: 3530, time: 90, type: 'transport' },
+                    { id: 'nagoya-tokyo', label: '名古屋 - 東京', cost: 11100, time: 120, type: 'transport' },
+                    { id: 'tokyo-nagoya', label: '東京 - 名古屋', cost: 11100, time: 120, type: 'transport' },
+                    { id: 'home-tokyo', label: '自宅 - 東京', cost: 14670, time: 180, type: 'transport' },
+                    { id: 'tokyo-home', label: '東京 - 自宅', cost: 14670, time: 180, type: 'transport' },
+                    { id: 'nagoya-stay', label: '名古屋泊', cost: 10000, time: 0, type: 'stay' },
+                    { id: 'tokyo-stay', label: '東京泊', cost: 12500, time: 0, type: 'stay' },
+                    { id: 'home-stay', label: '自宅泊', cost: 0, time: 0, type: 'stay' },
+                    { id: 'none', label: '▼選択', cost: 0, time: 0, type: 'none' }
+                ]
+            };
+        }
+
+        let travelData = loadTravelData();
+
+        // データを保存
+        function saveTravelData() {
+            localStorage.setItem('travelData', JSON.stringify(travelData));
+        }
+
+        // 初期パターン
+        const patterns = {
+            pattern1: [
+                'home-nagoya', 'nagoya-stay', 'nagoya-tokyo', 'tokyo-stay', 
+                'tokyo-home', 'none', 'none', 'none', 'none'
+            ],
+            pattern2: [
+                'home-nagoya', 'nagoya-home', 'home-stay', 'home-tokyo', 
+                'tokyo-stay', 'tokyo-home', 'none', 'none', 'none'
+            ],
+            pattern3: [
+                'home-nagoya', 'nagoya-home-commute', 'home-stay', 'home-tokyo', 
+                'tokyo-stay', 'home-tokyo', 'none', 'none', 'none'
+            ]
+        };
+
+        // 計算関数
+        function calculateTotal(pattern) {
+            let totalCost = 0;
+            let totalTime = 0;
+            
+            pattern.forEach(routeId => {
+                const route = travelData.routes.find(r => r.id === routeId);
+                if (route) {
+                    totalCost += route.cost;
+                    totalTime += route.time;
+                }
+            });
+            
+            return { cost: totalCost, time: totalTime };
+        }
+
+        function formatTime(minutes) {
+            const hours = Math.floor(minutes / 60);
+            const mins = minutes % 60;
+            return mins > 0 ? `${hours}:${mins.toString().padStart(2, '0')}` : `${hours}:00`;
+        }
+
+        function formatCurrency(amount) {
+            return `¥${amount.toLocaleString()}`;
+        }
+
+        // メインレンダリング
+        function render() {
+            renderPatterns();
+        }
+
+        function renderPatterns() {
+            const totals = {
+                pattern1: calculateTotal(patterns.pattern1),
+                pattern2: calculateTotal(patterns.pattern2),
+                pattern3: calculateTotal(patterns.pattern3)
+            };
+
+            let html = '';
+
+            ['pattern1', 'pattern2', 'pattern3'].forEach((patternName, patternIndex) => {
+                const patternNum = patternIndex + 1;
+                const pattern = patterns[patternName];
+                const total = totals[patternName];
+
+                html += `
+                    <div class="pattern-card">
+                        <div class="pattern-title">行程${patternNum}</div>
+                        <div class="totals">
+                            <div class="total-row">
+                                <span class="total-label">💰 交通/宿泊費</span>
+                                <span class="total-value">${formatCurrency(total.cost)}</span>
+                            </div>
+                            <div class="total-row">
+                                <span class="total-label">⏱️ 移動時間</span>
+                                <span class="total-value">${formatTime(total.time)}</span>
+                            </div>
+                        </div>
+                        <div class="routes">
+                `;
+
+                pattern.forEach((routeId, index) => {
+                    const route = travelData.routes.find(r => r.id === routeId);
+                    
+                    html += `
+                        <div class="route-item">
+                            <div class="route-row">
+                                <span class="route-number">${index + 1}</span>
+                                <select onchange="updateRoute('${patternName}', ${index}, this.value)">
+                    `;
+
+                    travelData.routes.forEach(r => {
+                        const selected = r.id === routeId ? 'selected' : '';
+                        html += `<option value="${r.id}" ${selected}>${r.label}</option>`;
+                    });
+
+                    html += '</select>';
+
+                    // ルート情報を同じ行に表示
+                    if (route && route.type !== 'none') {
+                        html += '<div class="route-info">';
+                        
+                        html += `<div class="info-item"><span class="info-value">${formatCurrency(route.cost)}</span></div>`;
+                        
+                        if (route.time > 0) {
+                            html += `<div class="info-item"><span class="info-value">${formatTime(route.time)}</span></div>`;
+                        }
+                        
+                        html += '</div>';
+                    }
+
+                    html += '</div></div>';
+                });
+
+                html += '</div></div>';
+            });
+
+            document.getElementById('patterns').innerHTML = html;
+        }
+
+        // ルート更新
+        function updateRoute(patternName, index, newRouteId) {
+            patterns[patternName][index] = newRouteId;
+            render();
+        }
+
+        // マスタ編集モーダル
+        function openMasterModal() {
+            renderMasterList();
+            document.getElementById('masterModal').classList.add('active');
+        }
+
+        function closeMasterModal() {
+            document.getElementById('masterModal').classList.remove('active');
+        }
+
+        function renderMasterList() {
+            let html = '';
+            
+            travelData.routes.forEach((route, index) => {
+                if (route.id === 'none') return; // "▼選択"は編集不可
+                
+                const typeLabel = route.type === 'transport' ? '移動' : '宿泊';
+                const typeClass = route.type === 'stay' ? 'stay' : '';
+                
+                html += `
+                    <div class="master-item">
+                        <div class="master-item-header">
+                            <span class="master-item-label">${route.label}</span>
+                            <span class="master-item-type ${typeClass}">${typeLabel}</span>
+                        </div>
+                        <div class="master-fields">
+                            <div class="field-group">
+                                <span class="field-label">ルート名</span>
+                                <input type="text" class="field-input" value="${route.label}" 
+                                    onchange="updateMasterField('${route.id}', 'label', this.value)">
+                            </div>
+                            <div class="field-group">
+                                <span class="field-label">料金 (円)</span>
+                                <input type="number" class="field-input" value="${route.cost}" min="0"
+                                    onchange="updateMasterField('${route.id}', 'cost', parseInt(this.value))">
+                            </div>
+                            <div class="field-group">
+                                <span class="field-label">時間 (分)</span>
+                                <input type="number" class="field-input" value="${route.time}" min="0"
+                                    onchange="updateMasterField('${route.id}', 'time', parseInt(this.value))">
+                            </div>
+                        </div>
+                        <button class="delete-btn" onclick="deleteRoute('${route.id}')">🗑️ 削除</button>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('masterList').innerHTML = html;
+        }
+
+        function updateMasterField(routeId, field, value) {
+            const route = travelData.routes.find(r => r.id === routeId);
+            if (route) {
+                route[field] = value;
+                saveTravelData();
+                render();
+            }
+        }
+
+        function deleteRoute(routeId) {
+            if (!confirm('このルートを削除しますか？')) return;
+            
+            travelData.routes = travelData.routes.filter(r => r.id !== routeId);
+            
+            // 行程から削除したルートを'none'に置き換え
+            ['pattern1', 'pattern2', 'pattern3'].forEach(patternName => {
+                patterns[patternName] = patterns[patternName].map(id => 
+                    id === routeId ? 'none' : id
+                );
+            });
+            
+            saveTravelData();
+            renderMasterList();
+            render();
+        }
+
+        function addNewRoute() {
+            const name = document.getElementById('newRouteName').value.trim();
+            const cost = parseInt(document.getElementById('newRouteCost').value) || 0;
+            const time = parseInt(document.getElementById('newRouteTime').value) || 0;
+            const type = document.getElementById('newRouteType').value;
+            
+            if (!name) {
+                alert('ルート名を入力してください');
+                return;
+            }
+            
+            const id = 'custom-' + Date.now();
+            
+            travelData.routes.push({
+                id: id,
+                label: name,
+                cost: cost,
+                time: time,
+                type: type
+            });
+            
+            saveTravelData();
+            
+            // フォームをクリア
+            document.getElementById('newRouteName').value = '';
+            document.getElementById('newRouteCost').value = '';
+            document.getElementById('newRouteTime').value = '';
+            
+            renderMasterList();
+            render();
+        }
+
+        function resetData() {
+            if (!confirm('データを初期値に戻しますか？カスタマイズした内容は削除されます。')) return;
+            
+            localStorage.removeItem('travelData');
+            travelData = loadTravelData();
+            render();
+            alert('データを初期値に戻しました');
+        }
+
+        // モーダル外クリックで閉じる
+        document.getElementById('masterModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeMasterModal();
+            }
+        });
+
+        // 初回レンダリング
+        render();
+    </script>
+</body>
+</html>
