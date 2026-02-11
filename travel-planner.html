@@ -162,12 +162,74 @@
             border-radius: 6px;
             background: white;
             cursor: pointer;
+            font-weight: 500;
         }
 
         select:focus {
             outline: none;
             border-color: #3b82f6;
             box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        }
+
+        /* ルートごとの色分け - スプレッドシートに合わせた配色 */
+        select.route-home-nagoya {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        select.route-home-tokyo {
+            background: #1e40af;
+            color: white;
+        }
+
+        select.route-tokyo-home {
+            background: #1e40af;
+            color: white;
+        }
+
+        select.route-nagoya-tokyo {
+            background: #bbf7d0;
+            color: #15803d;
+        }
+
+        select.route-tokyo-nagoya {
+            background: #bbf7d0;
+            color: #15803d;
+        }
+
+        select.route-nagoya-home {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        select.route-commute {
+            background: #e9d5ff;
+            color: #7e22ce;
+        }
+
+        select.route-tokyo-stay {
+            background: #fecaca;
+            color: #991b1b;
+        }
+
+        select.route-nagoya-stay {
+            background: #fecaca;
+            color: #991b1b;
+        }
+
+        select.route-home-stay {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        select.route-none {
+            background: white;
+            color: #6b7280;
+        }
+
+        select.route-custom {
+            background: #fef3c7;
+            color: #92400e;
         }
 
         .route-info {
@@ -354,7 +416,8 @@
             <h1>🧳 旅行行程比較ツール</h1>
             <div class="header-buttons">
                 <button class="btn btn-primary" onclick="openMasterModal()">📝 ルート・料金を編集</button>
-                <button class="btn btn-secondary" onclick="resetData()">🔄 初期値に戻す</button>
+                <button class="btn btn-secondary" onclick="resetPatterns()">🔄 行程をリセット</button>
+                <button class="btn btn-secondary" onclick="resetData()">💾 初期値に戻す</button>
             </div>
         </div>
 
@@ -476,6 +539,44 @@
             return `¥${amount.toLocaleString()}`;
         }
 
+        // ルートIDからCSSクラスを取得
+        function getRouteClass(routeId) {
+            // 通勤ルート
+            if (routeId.includes('commute')) {
+                return 'route-commute';
+            }
+            // 自宅 - 東京 / 東京 - 自宅
+            if (routeId === 'home-tokyo' || routeId === 'tokyo-home') {
+                return 'route-home-tokyo';
+            }
+            // 自宅 - 名古屋 / 名古屋 - 自宅
+            if (routeId === 'home-nagoya' || routeId === 'nagoya-home') {
+                return 'route-home-nagoya';
+            }
+            // 名古屋 - 東京 / 東京 - 名古屋
+            if (routeId === 'nagoya-tokyo' || routeId === 'tokyo-nagoya') {
+                return 'route-nagoya-tokyo';
+            }
+            // 東京泊
+            if (routeId === 'tokyo-stay') {
+                return 'route-tokyo-stay';
+            }
+            // 名古屋泊
+            if (routeId === 'nagoya-stay') {
+                return 'route-nagoya-stay';
+            }
+            // 自宅泊
+            if (routeId === 'home-stay') {
+                return 'route-home-stay';
+            }
+            // 選択なし
+            if (routeId === 'none') {
+                return 'route-none';
+            }
+            // その他（カスタムルート）
+            return 'route-custom';
+        }
+
         // メインレンダリング
         function render() {
             renderPatterns();
@@ -513,12 +614,13 @@
 
                 pattern.forEach((routeId, index) => {
                     const route = travelData.routes.find(r => r.id === routeId);
+                    const routeClass = getRouteClass(routeId);
                     
                     html += `
                         <div class="route-item">
                             <div class="route-row">
                                 <span class="route-number">${index + 1}</span>
-                                <select onchange="updateRoute('${patternName}', ${index}, this.value)">
+                                <select class="${routeClass}" onchange="updateRoute('${patternName}', ${index}, this.value)">
                     `;
 
                     travelData.routes.forEach(r => {
@@ -661,6 +763,17 @@
             document.getElementById('newRouteTime').value = '';
             
             renderMasterList();
+            render();
+        }
+
+        function resetPatterns() {
+            if (!confirm('全ての行程を「▼選択」にリセットしますか？')) return;
+            
+            // 各パターンを全て'none'で埋める
+            patterns.pattern1 = Array(9).fill('none');
+            patterns.pattern2 = Array(9).fill('none');
+            patterns.pattern3 = Array(9).fill('none');
+            
             render();
         }
 
